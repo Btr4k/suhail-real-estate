@@ -18,10 +18,13 @@ st.set_page_config(
 # Initialize OpenAI client with API key from Streamlit secrets
 @st.cache_resource
 def get_openai_client():
-    # Get the API key from Streamlit secrets
-    api_key = st.secrets["OPENAI_API_KEY"]
-    # Create the client without the proxies parameter
-    return OpenAI(api_key=api_key)
+    try:
+        # Get the API key from Streamlit secrets and create a minimal client
+        api_key = st.secrets["OPENAI_API_KEY"]
+        return OpenAI(api_key=api_key)
+    except Exception as e:
+        st.error(f"Client initialization error: {str(e)}")
+        return None
 
 # Custom CSS styling
 custom_css = """
@@ -277,7 +280,8 @@ def get_risk_level(value):
 # Enhanced AI response function using OpenAI
 def get_ai_response(prompt, history=None):
     try:
-        client = get_openai_client()
+        # Create a new client each time to avoid cached parameters
+        api_key = st.secrets["OPENAI_API_KEY"]
         
         # Create the system message for real estate context
         messages = [{"role": "system", "content": "You are Suhail, an AI assistant specialized in Saudi Arabian real estate. You provide detailed information about properties, neighborhoods, and environmental factors. Always respond in both Arabic (first) and English (second). Be helpful, detailed, and concise. Include real estate expertise in your answers about the Saudi market, particularly for Riyadh. Provide balanced views of properties and neighborhoods."}]
@@ -292,20 +296,39 @@ def get_ai_response(prompt, history=None):
         # Add the current user prompt
         messages.append({"role": "user", "content": prompt})
         
-        # Call the OpenAI API
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",  # Use "gpt-4" for better responses if available
-            messages=messages,
-            max_tokens=800,
-            temperature=0.7,
+        # Create HTTP headers
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+        
+        # Prepare request body
+        payload = {
+            "model": "gpt-3.5-turbo",
+            "messages": messages,
+            "max_tokens": 800,
+            "temperature": 0.7
+        }
+        
+        # Make the API call directly using requests
+        import requests
+        response = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers=headers,
+            json=payload
         )
         
-        return response.choices[0].message.content
+        # Check for successful response
+        if response.status_code == 200:
+            return response.json()["choices"][0]["message"]["content"]
+        else:
+            st.error(f"API Error: {response.status_code}, {response.text}")
+            return f"Error: {response.status_code}. Please try again later."
+            
     except Exception as e:
-        st.error(f"Error with OpenAI: {str(e)}")
-        # Fallback message if OpenAI fails
+        st.error(f"Error type: {type(e).__name__}, Error message: {str(e)}")
+        # Return fallback message
         return "عذراً، حدث خطأ في الاتصال بقاعدة المعرفة. يرجى المحاولة مرة أخرى لاحقاً.\n\nSorry, there was an error connecting to my knowledge base. Please try again later."
-
 # Function to visualize environmental risks
 def plot_environmental_risks(area):
     risks = next((r for r in load_risk_data() if r["name"] == area), None)
