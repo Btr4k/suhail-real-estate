@@ -276,6 +276,8 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # Initialize OpenAI client
 def get_ai_response(prompt, history=None):
     try:
+        # Create system message with additional instruction to prevent repeated greetings
+        system_message = "You are Suhail, an AI assistant specialized in Saudi Arabian real estate. Provide detailed information about properties, neighborhoods, financing options, and transaction processes. Always respond in both Arabic (first) and English (second). Be helpful, detailed, and concise. DO NOT repeat greeting messages if the user has already greeted you - continue the conversation naturally."
         # Create HTTP headers
         api_key = st.secrets["OPENAI_API_KEY"]
         headers = {
@@ -297,18 +299,20 @@ def get_ai_response(prompt, history=None):
         messages.append({"role": "user", "content": prompt})
         
         # Prepare request body
+       # In the API call settings
         payload = {
             "model": "gpt-3.5-turbo",
             "messages": messages,
-            "max_tokens": 800,
+            "max_tokens": 500,  # Lower from 800 to prevent long responses
             "temperature": 0.7
         }
         
-        # Make the API call
+        # Make the API call with timeout
         response = requests.post(
             "https://api.openai.com/v1/chat/completions",
             headers=headers,
-            json=payload
+            json=payload,
+            timeout=10  # Add 10-second timeout
         )
         
         # Check for successful response
