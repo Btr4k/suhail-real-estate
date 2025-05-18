@@ -4244,8 +4244,18 @@ def show_ai_chat():
     user_input = st.text_input("Type your question here...", key="user_input")
     
     if user_input:
-        # Add user message to chat history
-        st.session_state.chat_history.append({"role": "user", "content": user_input})
+        # Check if this exact question was asked before
+        if any(msg["role"] == "user" and msg["content"] == user_input for msg in st.session_state.chat_history[:-1]):
+            # User is repeating the exact same question
+            repeat_response = """
+            أعتقد أنني أجبت بالفعل على هذا السؤال. هل تود معرفة المزيد من التفاصيل أو لديك سؤال آخر؟
+            
+            I believe I've already answered this question. Would you like more specific details or do you have a different question?
+            """
+            st.session_state.chat_history.append({"role": "user", "content": user_input})
+            st.session_state.chat_history.append({"role": "assistant", "content": repeat_response})
+            st.rerun()
+            return
         
         # Get AI response
         with st.spinner("Thinking..."):
