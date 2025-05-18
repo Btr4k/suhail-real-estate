@@ -397,7 +397,12 @@ def plot_neighborhood_quality(area):
 def main():
     # Sidebar for navigation
     with st.sidebar:
-        st.image("https://via.placeholder.com/150x80?text=Suhail+Logo")
+        st.markdown("""
+                    <div style="background-color:#f0f0f0; height:200px; border-radius:10px; display:flex; 
+                    justify-content:center; align-items:center; margin-bottom:10px;">
+                    <p style="color:#505050;">Property Image</p>
+                    </div>
+                    """, unsafe_allow_html=True)
         
         # Language selection
         language = st.radio("Language / اللغة", ["English", "العربية"])
@@ -501,7 +506,12 @@ def show_home():
     cols = st.columns(3)
     for i, prop in enumerate(properties[:3]):
         with cols[i]:
-            st.image("https://via.placeholder.com/300x200?text=Property+Image", use_container_width=True)
+            st.markdown("""
+                        <div style="background-color:#f0f0f0; height:200px; border-radius:10px; display:flex; 
+                        justify-content:center; align-items:center; margin-bottom:10px;">
+                        <p style="color:#505050;">Property Image</p>
+                        </div>
+                        """, unsafe_allow_html=True)
             st.subheader(prop["title"])
             st.write(f"**Price:** {prop['price']:,} SAR")
             st.write(f"**Area:** {prop['area']}")
@@ -565,7 +575,12 @@ def show_property_search():
             col1, col2 = st.columns([2, 1])
             
             with col1:
-                st.image("https://via.placeholder.com/800x500?text=Property+Image", use_container_width=True)
+                st.markdown("""
+                            <div style="background-color:#f0f0f0; height:200px; border-radius:10px; display:flex; 
+                            justify-content:center; align-items:center; margin-bottom:10px;">
+                            <p style="color:#505050;">Property Image</p>
+                            </div>
+                            """, unsafe_allow_html=True)
                 
                 # Property description
                 st.subheader("Description / الوصف")
@@ -655,7 +670,12 @@ def show_property_search():
             col1, col2 = st.columns([1, 3])
             
             with col1:
-                st.image("https://via.placeholder.com/300x200?text=Property+Image", use_container_width=True)
+                st.markdown("""
+                            <div style="background-color:#f0f0f0; height:200px; border-radius:10px; display:flex; 
+                            justify-content:center; align-items:center; margin-bottom:10px;">
+                            <p style="color:#505050;">Property Image</p>
+                            </div>
+                            """, unsafe_allow_html=True)
             
             with col2:
                 st.subheader(prop['title'])
