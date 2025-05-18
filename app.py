@@ -20,6 +20,7 @@ st.set_page_config(
 def get_openai_client():
     # Get the API key from Streamlit secrets
     api_key = st.secrets["OPENAI_API_KEY"]
+    # Create the client without the proxies parameter
     return OpenAI(api_key=api_key)
 
 # Custom CSS styling
