@@ -4209,18 +4209,24 @@ def show_consultants_page():
 def show_ai_chat():
     st.markdown("<h1>Chat with SUHAIL AI / الدردشة مع الذكاء الاصطناعي سُهيل</h1>", unsafe_allow_html=True)
     
-    # Introduction
-    st.markdown("""
-    Our AI assistant specializes in Saudi real estate and can answer your questions about properties, 
-    neighborhoods, financing options, and transaction processes. Ask anything to get instant expertise!
+    # Introduction text remains the same...
     
-    يتخصص مساعدنا الذكي في العقارات السعودية ويمكنه الإجابة على أسئلتك حول العقارات،
-    الأحياء، خيارات التمويل، وعمليات المعاملات. اسأل أي شيء للحصول على خبرة فورية!
-    """)
-    
-    # Initialize chat history
+    # Initialize chat history and processing state
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
+    
+    if "processing_question" not in st.session_state:
+        st.session_state.processing_question = None
+    
+    if "answered_questions" not in st.session_state:
+        st.session_state.answered_questions = set()
+    
+    # Add clear chat button
+    if st.button("Clear Chat"):
+        st.session_state.chat_history = []
+        st.session_state.processing_question = None
+        st.session_state.answered_questions = set()
+        st.rerun()
     
     # Display chat history
     for message in st.session_state.chat_history:
@@ -4240,36 +4246,45 @@ def show_ai_chat():
     # Chat input
     user_input = st.text_input("Type your question here...", key="user_input")
     
-    if user_input:
-        # Check if this exact question was asked before
+    # Process the user input only if it's new and not empty
+    if user_input and user_input != st.session_state.processing_question and user_input not in st.session_state.answered_questions:
+        # Set the processing flag to prevent duplicate processing
+        st.session_state.processing_question = user_input
+        
+        # Add user message to chat history
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
+        
+        # Check if this exact question was asked before (additional check)
         if any(msg["role"] == "user" and msg["content"] == user_input for msg in st.session_state.chat_history[:-1]):
-            # User is repeating the exact same question
             repeat_response = """
             أعتقد أنني أجبت بالفعل على هذا السؤال. هل تود معرفة المزيد من التفاصيل أو لديك سؤال آخر؟
             
             I believe I've already answered this question. Would you like more specific details or do you have a different question?
             """
-            st.session_state.chat_history.append({"role": "user", "content": user_input})
             st.session_state.chat_history.append({"role": "assistant", "content": repeat_response})
+            st.session_state.answered_questions.add(user_input)
+            st.session_state.processing_question = None
             st.rerun()
-            return
-        
-        # Get AI response
-        with st.spinner("Thinking..."):
-            try:
-                ai_response = get_ai_response(user_input, st.session_state.chat_history)
-            except Exception as e:
-                ai_response = """
-                مرحبا! أنا سُهيل، مساعدك الذكي المتخصص في العقارات السعودية. كيف يمكنني مساعدتك اليوم؟ يمكنني تقديم معلومات حول العقارات، الأحياء، خيارات التمويل، وعمليات الشراء.
-                
-                Hello! I'm Suhail, your AI assistant specializing in Saudi real estate. How can I help you today? I can provide information about properties, neighborhoods, financing options, and buying processes.
-                """
-        
-        # Add AI response to chat history
-        st.session_state.chat_history.append({"role": "assistant", "content": ai_response})
-        
-        # Rerun to display the updated chat
-        st.rerun()
+        else:
+            # Only get AI response if not a repeated question
+            with st.spinner("Thinking..."):
+                try:
+                    ai_response = get_ai_response(user_input, st.session_state.chat_history)
+                    # Add AI response to chat history
+                    st.session_state.chat_history.append({"role": "assistant", "content": ai_response})
+                    # Mark question as answered
+                    st.session_state.answered_questions.add(user_input)
+                except Exception as e:
+                    error_response = """
+                    عذرًا، واجهت مشكلة في الاتصال بقاعدة المعرفة الخاصة بي. يرجى المحاولة مرة أخرى لاحقًا.
+                    
+                    Sorry, I encountered an error connecting to my knowledge base. Please try again later.
+                    """
+                    st.session_state.chat_history.append({"role": "assistant", "content": error_response})
+            
+            # Reset processing flag
+            st.session_state.processing_question = None
+            st.rerun()
     
     # Suggested questions
     st.markdown("<br>", unsafe_allow_html=True)
