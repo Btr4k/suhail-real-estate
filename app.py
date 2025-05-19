@@ -276,8 +276,6 @@ st.markdown(custom_css, unsafe_allow_html=True)
 # Initialize OpenAI client
 def get_ai_response(prompt, history=None):
     try:
-        # Create system message with additional instruction to prevent repeated greetings
-        system_message = "You are Suhail, an AI assistant specialized in Saudi Arabian real estate. Provide detailed information about properties, neighborhoods, financing options, and transaction processes. Always respond in both Arabic (first) and English (second). Be helpful, detailed, and concise. DO NOT repeat greeting messages if the user has already greeted you - continue the conversation naturally."
         # Create HTTP headers
         api_key = st.secrets["OPENAI_API_KEY"]
         headers = {
@@ -285,9 +283,8 @@ def get_ai_response(prompt, history=None):
             "Authorization": f"Bearer {api_key}"
         }
         
-        # Create the system message
-        # Create the system message
-        messages = [{"role": "system", "content": "You are Suhail, an AI assistant specialized in Saudi Arabian real estate. Provide detailed information about properties, neighborhoods, financing options, and transaction processes. Always respond in both Arabic (first) and English (second). Be helpful, detailed, and concise. If the user asks the same question multiple times, don't repeat your previous answer verbatim - acknowledge you've answered it before and ask if they need additional details."}]
+        # Create the system message - ONLY ONE system message with all instructions
+        messages = [{"role": "system", "content": "You are Suhail, an AI assistant specialized in Saudi Arabian real estate. Provide detailed information about properties, neighborhoods, financing options, and transaction processes. Always respond in both Arabic (first) and English (second). Be helpful, detailed, and concise. DO NOT repeat greeting messages if the user has already greeted you. If the user asks the same question multiple times, don't repeat your previous answer verbatim - acknowledge you've answered it before and ask if they need additional details."}]
         
         # Add chat history if available
         if history:
@@ -300,7 +297,6 @@ def get_ai_response(prompt, history=None):
         messages.append({"role": "user", "content": prompt})
         
         # Prepare request body
-       # In the API call settings
         payload = {
             "model": "gpt-3.5-turbo",
             "messages": messages,
